@@ -1,0 +1,112 @@
+{
+  "website": {
+    "loginUrl": "https://oriola4care.oriola-kd.com/login",
+    "username": "tipsboden@hotmail.com",
+    "password": "***HIDDEN***",
+    "selectors": {
+      "username": "#j_username",
+      "password": "#j_password",
+      "loginButton": "button[type=\"submit\"]",
+      "loginSuccess": ".logout, .dashboard, .account-info, nav",
+      "stock": ".stock-status, .availability, .in-stock, .lagerstatus",
+      "addToCart": ".add-to-cart, [data-testid=\"add-to-cart\"]",
+      "quantity": ".quantity-input, [name=\"quantity\"]",
+      "cart": ".cart, [data-testid=\"cart\"]",
+      "checkout": ".checkout, [data-testid=\"checkout\"]",
+      "placeOrder": ".place-order, [data-testid=\"place-order\"]"
+    }
+  },
+  "monitoring": {
+    "activeStartHour": 7,
+    "activeEndHour": 19,
+    "timezone": "Europe/Stockholm",
+    "checkInterval": 5,
+    "passiveInterval": 60,
+    "workdaysOnly": true
+  },
+  "orders": {
+    "autoOrderEnabled": true,
+    "maxOrderAmount": 500,
+    "quantityPerOrder": 1,
+    "maxDailyOrders": 5,
+    "confirmBeforeOrder": false,
+    "autoCheckout": false,
+    "conditions": {
+      "keywords": [
+        "in stock",
+        "available",
+        "tillgänglig",
+        "i lager",
+        "finns"
+      ],
+      "minStock": 1,
+      "maxPrice": 400
+    }
+  },
+  "products": [
+    {
+      "id": "1757184997472",
+      "name": "MEPIFORM 10X18CM 5ST (7323190179114)",
+      "url": "https://oriola4care.oriola-kd.com/search?q=7323190179114",
+      "stockSelector": ".stock-status, .availability, .in-stock, .lagerstatus, .tillgänglig",
+      "maxPrice": 300,
+      "enabled": true,
+      "addedAt": "2025-09-06T18:56:37.472Z",
+      "productCode": "7323190179114",
+      "expectedPrice": "250,00 SEK",
+      "orderConditions": {
+        "autoOrder": true,
+        "quantity": 1,
+        "maxDailyOrders": 2,
+        "keywords": [
+          "in stock",
+          "available",
+          "tillgänglig",
+          "i lager",
+          "finns"
+        ],
+        "minStock": 1
+      }
+    },
+    {
+      "id": "1757184997475",
+      "name": "MEPIFORM 5X7,5CM 2ST (7332551949327)",
+      "url": "https://oriola4care.oriola-kd.com/search?q=7332551949327",
+      "stockSelector": ".stock-status, .availability, .in-stock, .lagerstatus, .tillgänglig",
+      "maxPrice": 60,
+      "enabled": true,
+      "addedAt": "2025-09-06T18:56:37.475Z",
+      "productCode": "7332551949327",
+      "expectedPrice": "42,00 SEK",
+      "orderConditions": {
+        "autoOrder": true,
+        "quantity": 1,
+        "maxDailyOrders": 2,
+        "keywords": [
+          "in stock",
+          "available",
+          "tillgänglig",
+          "i lager",
+          "finns"
+        ],
+        "minStock": 1
+      }
+    }
+  ],
+  "notifications": {
+    "email": "",
+    "smtp": {
+      "host": "smtp.gmail.com",
+      "port": 587,
+      "user": "",
+      "pass": ""
+    }
+  },
+  "compliance": {
+    "respectRobotsTxt": true,
+    "minRequestDelay": 2000,
+    "maxConcurrentRequests": 1,
+    "userAgent": "Health Product Monitor 1.0",
+    "honorRateLimit": true
+  }
+}

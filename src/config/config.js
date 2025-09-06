@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+require('dotenv').config();
 
 class Config {
   constructor() {
@@ -8,11 +9,11 @@ class Config {
         username: process.env.USERNAME || '',
         password: process.env.PASSWORD || '',
         selectors: {
-          username: process.env.USERNAME_SELECTOR || '#username',
-          password: process.env.PASSWORD_SELECTOR || '#password',
+          username: process.env.USERNAME_SELECTOR || '#j_username',
+          password: process.env.PASSWORD_SELECTOR || '#j_password',
           loginButton: process.env.LOGIN_BUTTON_SELECTOR || 'button[type="submit"]',
-          loginSuccess: process.env.LOGIN_SUCCESS_SELECTOR || '.dashboard',
-          stock: process.env.STOCK_SELECTOR || '.stock-status',
+          loginSuccess: process.env.LOGIN_SUCCESS_SELECTOR || '.logout, .dashboard, .account-info',
+          stock: process.env.STOCK_SELECTOR || '.stock-status, .availability, .in-stock, .lagerstatus',
           addToCart: '.add-to-cart, [data-testid="add-to-cart"]',
           quantity: '.quantity-input, [name="quantity"]',
           cart: '.cart, [data-testid="cart"]',

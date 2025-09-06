@@ -1,0 +1,24 @@
+[
+  {
+    "key": "JSESSIONID",
+    "value": "1C87427ADFE24E858AFD4B3D21AB56B9.okdhybapp02prod",
+    "domain": "oriola4care.oriola-kd.com",
+    "path": "/",
+    "secure": true,
+    "httpOnly": true,
+    "hostOnly": true,
+    "creation": "2025-09-06T18:47:35.768Z",
+    "lastAccessed": "2025-09-06T18:47:36.190Z"
+  },
+  {
+    "key": "acceleratorSecureGUID",
+    "value": "e8706efb66f11fdf8ada2b2624ba7ab22c68672d",
+    "domain": "oriola4care.oriola-kd.com",
+    "path": "/",
+    "secure": true,
+    "httpOnly": true,
+    "hostOnly": true,
+    "creation": "2025-09-06T18:47:36.005Z",
+    "lastAccessed": "2025-09-06T18:47:36.190Z"
+  }
+]

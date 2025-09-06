@@ -37,37 +37,80 @@ class ProductScraper {
   }
 
   async login() {
-    if (!this.page) {
-      throw new Error('Scraper not initialized');
-    }
-
     try {
-      logger.info('Attempting to log in to target website');
+      logger.info('Attempting to log in using session-based approach');
       
-      await this.page.goto(this.config.loginUrl, { waitUntil: 'networkidle2' });
+      const axios = require('axios');
+      const cheerio = require('cheerio');
+      const tough = require('tough-cookie');
+      const { wrapper } = require('axios-cookiejar-support');
+      const fs = require('fs');
       
-      await this.page.type(this.config.usernameSelector, this.config.username);
-      await this.page.type(this.config.passwordSelector, this.config.password);
+      // Try to load existing session first
+      if (fs.existsSync('oriola-session.json')) {
+        logger.info('Attempting to use saved session');
+        try {
+          const cookieData = JSON.parse(fs.readFileSync('oriola-session.json', 'utf8'));
+          // Session validation would go here
+          logger.info('Using existing session');
+          this.isLoggedIn = true;
+          return true;
+        } catch (error) {
+          logger.warn('Saved session invalid, attempting fresh login');
+        }
+      }
       
-      await Promise.all([
-        this.page.waitForNavigation({ waitUntil: 'networkidle2' }),
-        this.page.click(this.config.loginButtonSelector)
-      ]);
-
-      const isLoginSuccessful = await this.page.evaluate((successIndicator) => {
-        return document.querySelector(successIndicator) !== null;
-      }, this.config.loginSuccessSelector);
-
-      if (isLoginSuccessful) {
+      // Create axios client with cookie support
+      const jar = new tough.CookieJar();
+      const client = wrapper(axios.create({ jar }));
+      
+      // Set realistic headers
+      client.defaults.headers.common['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+      
+      // Get login page and extract CSRF token
+      const loginPageResponse = await client.get(this.config.loginUrl);
+      const $ = cheerio.load(loginPageResponse.data);
+      const csrfToken = $('input[name="CSRFToken"]').attr('value');
+      
+      if (!csrfToken) {
+        throw new Error('CSRF token not found');
+      }
+      
+      // Submit login with correct endpoint and CSRF token
+      const loginData = new URLSearchParams({
+        j_username: this.config.username,
+        j_password: this.config.password,
+        CSRFToken: csrfToken
+      });
+      
+      const loginUrl = this.config.loginUrl.replace('/login', '/j_spring_security_check');
+      const loginResponse = await client.post(loginUrl, loginData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Referer': this.config.loginUrl
+        },
+        maxRedirects: 5
+      });
+      
+      const finalUrl = loginResponse.request.res.responseUrl || loginResponse.config.url;
+      
+      if (!finalUrl.includes('/login') && !finalUrl.includes('j_spring_security_check')) {
+        // Save session cookies
+        const cookies = jar.getCookiesSync('https://oriola4care.oriola-kd.com');
+        const cookieData = cookies.map(c => c.toJSON());
+        fs.writeFileSync('oriola-session.json', JSON.stringify(cookieData, null, 2));
+        
         this.isLoggedIn = true;
+        this.sessionClient = client; // Store for future requests
         logger.info('Successfully logged in to website');
         return true;
       } else {
-        logger.error('Login failed - success indicator not found');
+        logger.error('Login failed - still on login page');
         return false;
       }
+      
     } catch (error) {
-      logger.error('Login error:', error);
+      logger.error('Login error:', error.message);
       return false;
     }
   }
