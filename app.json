@@ -1,0 +1,115 @@
+{
+  "name": "Health Product Automator",
+  "description": "Automated health product monitoring and ordering system",
+  "repository": "https://github.com/your-username/health-product-automator",
+  "logo": "https://raw.githubusercontent.com/heroku/node-js-getting-started/main/public/node.svg",
+  "keywords": ["node", "express", "automation", "web-scraping"],
+  "image": "heroku/nodejs",
+  "stack": "heroku-22",
+  "buildpacks": [
+    {
+      "url": "https://github.com/jontewks/puppeteer-heroku-buildpack"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment mode",
+      "value": "production"
+    },
+    "TARGET_WEBSITE_URL": {
+      "description": "The main website URL to monitor"
+    },
+    "LOGIN_URL": {
+      "description": "Login page URL"
+    },
+    "USERNAME": {
+      "description": "Username for website login"
+    },
+    "PASSWORD": {
+      "description": "Password for website login"
+    },
+    "USERNAME_SELECTOR": {
+      "description": "CSS selector for username field",
+      "value": "#username"
+    },
+    "PASSWORD_SELECTOR": {
+      "description": "CSS selector for password field",
+      "value": "#password"
+    },
+    "LOGIN_BUTTON_SELECTOR": {
+      "description": "CSS selector for login button",
+      "value": "button[type=\"submit\"]"
+    },
+    "LOGIN_SUCCESS_SELECTOR": {
+      "description": "CSS selector that indicates successful login",
+      "value": ".dashboard"
+    },
+    "STOCK_SELECTOR": {
+      "description": "CSS selector for stock status",
+      "value": ".stock-status"
+    },
+    "MAX_ORDER_AMOUNT": {
+      "description": "Maximum amount per order in USD",
+      "value": "500"
+    },
+    "AUTO_ORDER_ENABLED": {
+      "description": "Enable automatic order placement",
+      "value": "true"
+    },
+    "QUANTITY_PER_ORDER": {
+      "description": "Quantity to order per product",
+      "value": "1"
+    },
+    "ACTIVE_START_HOUR": {
+      "description": "Start hour for active monitoring (24h format)",
+      "value": "7"
+    },
+    "ACTIVE_END_HOUR": {
+      "description": "End hour for active monitoring (24h format)",
+      "value": "19"
+    },
+    "TIMEZONE": {
+      "description": "Timezone for scheduling",
+      "value": "America/New_York"
+    },
+    "NOTIFICATION_EMAIL": {
+      "description": "Email address for notifications"
+    },
+    "SMTP_HOST": {
+      "description": "SMTP server hostname",
+      "value": "smtp.gmail.com"
+    },
+    "SMTP_PORT": {
+      "description": "SMTP server port",
+      "value": "587"
+    },
+    "SMTP_USER": {
+      "description": "SMTP username (email)"
+    },
+    "SMTP_PASS": {
+      "description": "SMTP password (app password for Gmail)"
+    },
+    "JWT_SECRET": {
+      "description": "JWT secret for authentication",
+      "generator": "secret"
+    },
+    "ENCRYPT_KEY": {
+      "description": "32-character encryption key",
+      "generator": "secret"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0"
+    }
+  ]
+}

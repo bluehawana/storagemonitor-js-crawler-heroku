@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Product Automator</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Health Product Automator</h1>
+            <div class="status-indicator">
+                <span id="status-dot" class="dot"></span>
+                <span id="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>System Status</h3>
+                    <div id="system-status" class="stat-value">Loading...</div>
+                    <small id="last-check">Last check: Never</small>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Products Tracked</h3>
+                    <div id="products-count" class="stat-value">0</div>
+                    <small>Active products</small>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Orders Today</h3>
+                    <div id="orders-today" class="stat-value">0</div>
+                    <small>Successful orders</small>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Total Checks</h3>
+                    <div id="total-checks" class="stat-value">0</div>
+                    <small>All time checks</small>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="section">
+                    <h2>Product Monitoring</h2>
+                    <div class="controls">
+                        <button id="manual-check-btn" class="btn btn-primary">Run Manual Check</button>
+                        <button id="add-product-btn" class="btn btn-secondary">Add Product</button>
+                    </div>
+                    
+                    <div id="products-list" class="products-container">
+                        <!-- Products will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Recent Activity</h2>
+                    <div id="activity-log" class="activity-log">
+                        <!-- Activity will be logged here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Configuration</h2>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>Auto Order Enabled</label>
+                            <input type="checkbox" id="auto-order-toggle">
+                        </div>
+                        <div class="config-item">
+                            <label>Max Order Amount ($)</label>
+                            <input type="number" id="max-order-amount" placeholder="500">
+                        </div>
+                        <div class="config-item">
+                            <label>Daily Order Limit</label>
+                            <input type="number" id="daily-limit" placeholder="10">
+                        </div>
+                    </div>
+                    <button id="save-config-btn" class="btn btn-primary">Save Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="add-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add New Product</h2>
+            <form id="add-product-form">
+                <div class="form-group">
+                    <label for="product-name">Product Name</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-url">Product URL</label>
+                    <input type="url" id="product-url" required>
+                </div>
+                <div class="form-group">
+                    <label for="stock-selector">Stock Status Selector</label>
+                    <input type="text" id="stock-selector" placeholder=".stock-status" required>
+                </div>
+                <div class="form-group">
+                    <label for="max-price">Max Price ($)</label>
+                    <input type="number" id="max-price" placeholder="100">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
