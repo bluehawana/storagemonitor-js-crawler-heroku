@@ -101,6 +101,12 @@ config/local.json
 # Screenshots and debug files
 screenshots/
 debug/
+*.png
+*.jpg
+
+# Session files
+oriola-session.json
+*.session
 
 # Temporary files
 tmp/
