@@ -67,8 +67,37 @@ class MepiformHerokuServer {
             });
         });
 
-        // Initialize dashboard
-        await this.dashboard.initialize();
+        // Add basic dashboard route
+        this.app.get('/', (req, res) => {
+            res.send(`
+            <html><head><title>MEPIFORM Automation</title>
+            <style>body{font-family:Arial;padding:20px;background:#f5f5f5}
+            .card{background:white;padding:20px;margin:10px 0;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+            .status{font-size:24px;margin:10px 0}.running{color:#27ae60}.idle{color:#95a5a6}
+            </style></head><body>
+            <h1>🤖 MEPIFORM Automation System</h1>
+            <div class="card">
+                <div class="status ${this.isAutomationRunning ? 'running' : 'idle'}">
+                    Status: ${this.isAutomationRunning ? '🟢 Running' : '🔴 Idle'}
+                </div>
+                <p>Current Time: ${new Date().toLocaleString('sv-SE', {timeZone: 'Europe/Stockholm'})}</p>
+                <p>Work Hours: Monday-Friday 07:00-18:00 (Swedish Time)</p>
+                <p>Next Work Start: ${this.getNextWorkStart().toLocaleString('sv-SE', {timeZone: 'Europe/Stockholm'})}</p>
+            </div>
+            <div class="card">
+                <h3>📦 Products Monitored</h3>
+                <ul>
+                    <li>MEPIFORM 10X18CM - Strategy: 700→350→140→70</li>
+                    <li>MEPIFORM 5X7.5CM - Strategy: 900→450→270 (max 1620/day)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🔗 API Endpoints</h3>
+                <p><a href="/health">Health Check</a></p>
+                <p><a href="/automation-status">Automation Status</a></p>
+            </div>
+            </body></html>`);
+        });
         
         // Start automation if within work hours
         const now = new Date();
