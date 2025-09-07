@@ -108,6 +108,12 @@ debug/
 oriola-session.json
 *.session
 
+# MEPIFORM credential and state files
+mepiform-config.json
+daily-state.json
+mepiform-credentials.json
+*.credentials
+
 # Temporary files
 tmp/
 temp/

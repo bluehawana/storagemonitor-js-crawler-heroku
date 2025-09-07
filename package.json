@@ -1,31 +1,32 @@
 {
-  "name": "oriola4care-health-monitor",
+  "name": "mepiform-automation-system",
   "version": "1.0.0",
-  "description": "Automated health product monitoring and ordering system for Oriola4Care pharmacy",
-  "main": "app.js",
+  "description": "Automated MEPIFORM product ordering system for Oriola4Care",
+  "main": "mepiform-heroku-server.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "test": "node test-scraper-login.js",
-    "setup": "node setup-final-products.js"
+    "start": "node mepiform-heroku-server.js",
+    "dev": "node start-mepiform-automation.js",
+    "test": "node test-mepiform-system.js",
+    "automation": "node mepiform-order-system.js",
+    "scheduler": "node mepiform-scheduler.js",
+    "dashboard": "node mepiform-monitor-dashboard.js",
+    "deploy": "./deploy-mepiform-heroku.sh"
   },
   "keywords": [
-    "pharmacy",
-    "monitoring",
+    "mepiform",
     "automation",
-    "health",
-    "oriola4care"
+    "oriola4care",
+    "playwright",
+    "scheduling"
   ],
-  "author": "Health Monitor System",
+  "author": "MEPIFORM Automation System",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "puppeteer": "^21.11.0",
-    "axios": "^1.6.0",
-    "tough-cookie": "^4.1.3",
-    "axios-cookiejar-support": "^5.0.2",
-    "cheerio": "^1.0.0-rc.12",
-    "node-cron": "^3.0.3",
+    "playwright": "^1.40.0",
+    "node-schedule": "^2.1.1",
+    "ws": "^8.14.2",
+    "chalk": "^4.1.2",
     "dotenv": "^16.3.1",
     "winston": "^3.11.0"
   },
