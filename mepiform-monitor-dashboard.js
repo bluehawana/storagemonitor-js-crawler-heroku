@@ -36,6 +36,13 @@ class MepiformMonitorDashboard extends EventEmitter {
         this.server = this.app.listen(this.port, () => {
             console.log(`📊 Dashboard running at http://localhost:${this.port}`);
         });
+
+        // Handle WebSocket upgrade on same server
+        this.server.on('upgrade', (request, socket, head) => {
+            this.wss.handleUpgrade(request, socket, head, (websocket) => {
+                this.wss.emit('connection', websocket, request);
+            });
+        });
     }
 
     setupExpress() {
@@ -64,7 +71,8 @@ class MepiformMonitorDashboard extends EventEmitter {
     }
 
     setupWebSocket() {
-        this.wss = new WebSocket.Server({ port: this.port + 1 });
+        // In Heroku, use the same server for WebSocket instead of separate port
+        this.wss = new WebSocket.Server({ noServer: true });
         
         this.wss.on('connection', (ws) => {
             console.log('📱 Dashboard client connected');
@@ -366,7 +374,8 @@ class MepiformMonitorDashboard extends EventEmitter {
     </div>
 
     <script>
-        const ws = new WebSocket('ws://localhost:3001');
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(protocol + '//' + location.host);
         let dashboardData = null;
 
         ws.onmessage = (event) => {
