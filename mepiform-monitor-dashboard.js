@@ -117,11 +117,13 @@ class MepiformMonitorDashboard extends EventEmitter {
             data: this.dashboardData
         });
 
-        this.wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(message);
-            }
-        });
+        if (this.wss && this.wss.clients) {
+            this.wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(message);
+                }
+            });
+        }
     }
 
     updateSystemStatus(status) {
