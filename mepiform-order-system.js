@@ -137,9 +137,9 @@ class MepiformOrderSystem {
             ] : []
         };
 
-        // On Heroku, use the Chrome installed by official Chrome buildpack
+        // On Heroku, use Chrome for Testing buildpack executable
         if (isHeroku) {
-            launchOptions.executablePath = process.env.GOOGLE_CHROME_BIN || '/app/.chrome-for-testing/chrome/linux-*/chrome-linux64/chrome';
+            launchOptions.executablePath = process.env.GOOGLE_CHROME_BIN;
         }
 
         this.state.browser = await puppeteer.launch(launchOptions);
