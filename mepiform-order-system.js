@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const puppeteer = require('puppeteer');
 const fs = require('fs').promises;
 const path = require('path');
 const readline = require('readline');
@@ -126,7 +126,6 @@ class MepiformOrderSystem {
         const launchOptions = {
             headless: isHeroku ? true : (process.env.HEADLESS_MODE === 'true'),
             args: isHeroku ? [
-                '--disable-blink-features=AutomationControlled',
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
@@ -135,15 +134,19 @@ class MepiformOrderSystem {
                 '--no-zygote',
                 '--single-process',
                 '--disable-gpu'
-            ] : ['--disable-blink-features=AutomationControlled']
-        });
+            ] : []
+        };
+
+        // On Heroku, use the system Chrome installed by Puppeteer buildpack
+        if (isHeroku) {
+            launchOptions.executablePath = process.env.GOOGLE_CHROME_BIN || '/usr/bin/google-chrome-stable';
+        }
+
+        this.state.browser = await puppeteer.launch(launchOptions);
+        this.state.page = await this.state.browser.newPage();
         
-        const context = await this.state.browser.newContext({
-            viewport: { width: 1280, height: 800 },
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        });
-        
-        this.state.page = await context.newPage();
+        await this.state.page.setViewport({ width: 1280, height: 800 });
+        await this.state.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
         console.log('✅ Browser ready');
     }
 
