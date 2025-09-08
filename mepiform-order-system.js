@@ -154,15 +154,15 @@ class MepiformOrderSystem {
         console.log('🔐 Logging in to Oriola4Care...');
         
         await this.state.page.goto('https://oriola4care.oriola-kd.com/login', { 
-            waitUntil: 'networkidle' 
+            waitUntil: 'networkidle2' 
         });
         
         if (!this.credentials.password) {
             this.credentials.password = await this.promptForPassword();
         }
 
-        await this.state.page.fill('#UserName', this.credentials.username);
-        await this.state.page.fill('#Password', this.credentials.password);
+        await this.state.page.type('#UserName', this.credentials.username);
+        await this.state.page.type('#Password', this.credentials.password);
         await this.state.page.click('#login-submit');
         
         try {
@@ -170,7 +170,7 @@ class MepiformOrderSystem {
             
             const url = this.state.page.url();
             if (url.includes('login')) {
-                const error = await this.state.page.textContent('.validation-summary-errors').catch(() => '');
+                const error = await this.state.page.$eval('.validation-summary-errors', el => el.textContent).catch(() => '');
                 if (error.includes('expired') || error.includes('password')) {
                     console.log('❌ Password expired or incorrect');
                     this.credentials.password = await this.promptForPassword();
@@ -223,9 +223,9 @@ class MepiformOrderSystem {
         }
 
         console.log(`🔍 Checking ${product.name} inventory...`);
-        await this.state.page.goto(product.url, { waitUntil: 'networkidle' });
+        await this.state.page.goto(product.url, { waitUntil: 'networkidle2' });
         
-        const stockStatus = await this.state.page.textContent('.product-availability, .stock-status, .availability')
+        const stockStatus = await this.state.page.$eval('.product-availability, .stock-status, .availability', el => el.textContent)
             .catch(() => '');
         
         console.log(`📦 ${product.name} status: "${stockStatus}"`);
@@ -282,7 +282,7 @@ class MepiformOrderSystem {
         console.log(`\n🛒 Starting order: ${product.name} x ${quantity}`);
         
         try {
-            await this.state.page.fill('input[name="quantity"], #quantity', quantity.toString());
+            await this.state.page.type('input[name="quantity"], #quantity', quantity.toString(), {delay: 100});
             await this.state.page.click('button.add-to-cart, button[value="KÖP"], .add-to-cart-button');
             
             await this.state.page.waitForTimeout(2000);
@@ -294,15 +294,18 @@ class MepiformOrderSystem {
             await this.state.page.waitForNavigation();
             
             const deliveryDate = this.getNextBusinessDay();
-            await this.state.page.fill('input[name="deliveryDate"], #deliveryDate', deliveryDate);
+            await this.state.page.type('input[name="deliveryDate"], #deliveryDate', deliveryDate);
             
             const orderRef = this.generateOrderReference();
-            await this.state.page.fill('input[name="reference"], #reference', orderRef);
+            await this.state.page.type('input[name="reference"], #reference', orderRef);
             
-            await this.state.page.check('input[name="acceptTerms"], #acceptTerms');
-            await this.state.page.click('button[type="submit"]:has-text("SKICKA ORDER"), .submit-order');
+            await this.state.page.click('input[name="acceptTerms"], #acceptTerms');
+            await this.state.page.click('button[type="submit"]');
             
-            await this.state.page.waitForSelector('text=TACK FÖR DIN ORDER', { timeout: 10000 });
+            await this.state.page.waitForFunction(() => 
+                document.body.textContent.includes('TACK FÖR DIN ORDER'), 
+                { timeout: 10000 }
+            );
             
             console.log(`✅ Order successful! Reference: ${orderRef}`);
             
@@ -334,7 +337,7 @@ class MepiformOrderSystem {
         } catch (error) {
             console.error(`❌ Order failed: ${error.message}`);
             
-            const errorText = await this.state.page.textContent('.error, .alert').catch(() => '');
+            const errorText = await this.state.page.$eval('.error, .alert', el => el.textContent).catch(() => '');
             if (errorText.includes('credit') || errorText.includes('limit')) {
                 return await this.retryWithReducedQuantity(productKey, quantity);
             }
@@ -360,13 +363,20 @@ class MepiformOrderSystem {
             
             console.log(`🔄 Retrying with ${newQuantity} units...`);
             
-            await this.state.page.fill('.cart-quantity input', newQuantity.toString());
+            await this.state.page.focus('.cart-quantity input');
+            await this.state.page.keyboard.down('Control');
+            await this.state.page.keyboard.press('KeyA');
+            await this.state.page.keyboard.up('Control');
+            await this.state.page.type('.cart-quantity input', newQuantity.toString());
             await this.state.page.click('button.update-cart');
             await this.state.page.waitForTimeout(2000);
             
             try {
-                await this.state.page.click('button[type="submit"]:has-text("SKICKA ORDER")');
-                await this.state.page.waitForSelector('text=TACK FÖR DIN ORDER', { timeout: 10000 });
+                await this.state.page.click('button[type="submit"]');
+                await this.state.page.waitForFunction(() => 
+                document.body.textContent.includes('TACK FÖR DIN ORDER'), 
+                { timeout: 10000 }
+            );
                 
                 product.dailyOrderCount++;
                 if (productKey === 'product2') {
@@ -389,22 +399,22 @@ class MepiformOrderSystem {
     async checkAndDeleteBackorders() {
         console.log('\n📋 Checking backorders...');
         await this.state.page.goto('https://oriola4care.oriola-kd.com/my-account/backorders', {
-            waitUntil: 'networkidle'
+            waitUntil: 'networkidle2'
         });
         
         const backorders = await this.state.page.$$('.backorder-item, tr[data-product]');
         
         for (const backorder of backorders) {
-            const productName = await backorder.textContent('.product-name, td.name').catch(() => '');
-            const orderedQty = await backorder.textContent('.ordered-qty, td:nth-child(3)').catch(() => '');
-            const backorderQty = await backorder.textContent('.backorder-qty, td:nth-child(4)').catch(() => '');
+            const productName = await backorder.$eval('.product-name, td.name', el => el.textContent).catch(() => '');
+            const orderedQty = await backorder.$eval('.ordered-qty, td:nth-child(3)', el => el.textContent).catch(() => '');
+            const backorderQty = await backorder.$eval('.backorder-qty, td:nth-child(4)', el => el.textContent).catch(() => '');
             
             if (orderedQty === backorderQty && orderedQty !== '') {
                 console.log(`🗑️  Deleting backorder: ${productName}`);
                 
                 await backorder.click('.delete-button, button.delete');
                 await this.state.page.waitForSelector('.confirm-delete, .modal-confirm');
-                await this.state.page.click('button:has-text("TA BORT"), button.confirm-delete');
+                await this.state.page.click('button.confirm-delete');
                 await this.state.page.waitForTimeout(2000);
                 
                 if (productName.includes('10X18CM')) {
