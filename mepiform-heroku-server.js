@@ -1,4 +1,5 @@
 const express = require('express');
+const http = require('http');
 const { spawn } = require('child_process');
 const path = require('path');
 const MepiformMonitorDashboard = require('./mepiform-monitor-dashboard');
@@ -7,7 +8,8 @@ class MepiformHerokuServer {
     constructor() {
         this.app = express();
         this.port = process.env.PORT || 3000;
-        this.dashboard = new MepiformMonitorDashboard(this.port);
+        this.dashboard = null;
+        this.httpServer = null;
         this.automationProcess = null;
         this.isAutomationRunning = false;
     }
@@ -67,7 +69,7 @@ class MepiformHerokuServer {
             });
         });
 
-        // Add basic dashboard route
+        // Basic root route
         this.app.get('/', (req, res) => {
             res.send(`
             <html><head><title>MEPIFORM Automation</title>
@@ -92,7 +94,8 @@ class MepiformHerokuServer {
                 </ul>
             </div>
             <div class="card">
-                <h3>🔗 API Endpoints</h3>
+                <h3>🔗 Links</h3>
+                <p><a href="/dashboard">Open Dashboard</a></p>
                 <p><a href="/health">Health Check</a></p>
                 <p><a href="/automation-status">Automation Status</a></p>
             </div>
@@ -252,11 +255,16 @@ class MepiformHerokuServer {
     }
 
     async start() {
+        // Create a single HTTP server and mount dashboard on it
+        this.httpServer = http.createServer(this.app);
+        this.dashboard = new MepiformMonitorDashboard(this.app, this.httpServer, this.port);
+        await this.dashboard.initialize();
+
         await this.initialize();
-        
-        this.app.listen(this.port, () => {
+
+        this.httpServer.listen(this.port, () => {
             console.log(`🌐 MEPIFORM Heroku server running on port ${this.port}`);
-            console.log(`📊 Dashboard: http://localhost:${this.port}`);
+            console.log(`📊 Dashboard: http://localhost:${this.port}/dashboard`);
             console.log(`🔧 API: http://localhost:${this.port}/health`);
         });
 

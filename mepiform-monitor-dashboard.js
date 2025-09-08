@@ -5,11 +5,11 @@ const fs = require('fs').promises;
 const EventEmitter = require('events');
 
 class MepiformMonitorDashboard extends EventEmitter {
-    constructor(port = 3000) {
+    constructor(app = null, server = null, port = process.env.PORT || 3000) {
         super();
         this.port = port;
-        this.app = express();
-        this.server = null;
+        this.app = app || express();
+        this.server = server || null;
         this.wss = null;
         this.dashboardData = {
             systemStatus: 'idle',
@@ -32,10 +32,15 @@ class MepiformMonitorDashboard extends EventEmitter {
         this.setupExpress();
         this.setupWebSocket();
         await this.loadDailyData();
-        
-        this.server = this.app.listen(this.port, () => {
-            console.log(`📊 Dashboard running at http://localhost:${this.port}`);
-        });
+
+        // If a server was not provided, create one (standalone mode)
+        if (!this.server) {
+            this.server = this.app.listen(this.port, () => {
+                console.log(`📊 Dashboard running at http://localhost:${this.port}`);
+            });
+        } else {
+            console.log('📊 Dashboard mounted on existing server');
+        }
 
         // Handle WebSocket upgrade on same server
         this.server.on('upgrade', (request, socket, head) => {
@@ -49,8 +54,9 @@ class MepiformMonitorDashboard extends EventEmitter {
         this.app.use(express.json());
         this.app.use(express.static(path.join(__dirname, 'public')));
 
-        this.app.get('/', (req, res) => {
-            res.sendFile(path.join(__dirname, 'dashboard.html'));
+        // Serve dashboard under /dashboard to avoid clashing with server root
+        this.app.get('/dashboard', (req, res) => {
+            res.send(this.createDashboardHTML());
         });
 
         this.app.get('/api/status', (req, res) => {
