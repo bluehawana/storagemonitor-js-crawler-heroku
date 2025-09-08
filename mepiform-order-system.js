@@ -147,7 +147,7 @@ class MepiformOrderSystem {
         
         await this.state.page.setViewport({ width: 1280, height: 800 });
         await this.state.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-        console.log('✅ Browser ready');
+        console.log('✅ Browser ready - Puppeteer version');
     }
 
     async login() {
