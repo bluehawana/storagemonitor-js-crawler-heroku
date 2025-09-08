@@ -157,27 +157,105 @@ class MepiformOrderSystem {
             waitUntil: 'networkidle2' 
         });
         
+        // Debug: Check what page we're actually on
+        const currentUrl = this.state.page.url();
+        console.log(`📍 Current URL: ${currentUrl}`);
+        
         if (!this.credentials.password) {
             this.credentials.password = await this.promptForPassword();
         }
 
-        await this.state.page.type('#UserName', this.credentials.username);
-        await this.state.page.type('#Password', this.credentials.password);
-        await this.state.page.click('#login-submit');
+        // Wait for login form to be available and try different selectors
+        try {
+            await this.state.page.waitForSelector('#UserName, #j_username, input[name="username"], input[type="email"]', { timeout: 10000 });
+            console.log('✅ Login form found');
+        } catch (error) {
+            console.log('❌ Login form selectors not found, trying to continue...');
+        }
+
+        // Try different username selectors
+        const usernameSelectors = ['#UserName', '#j_username', 'input[name="username"]', 'input[type="email"]'];
+        let usernameFound = false;
+        
+        for (const selector of usernameSelectors) {
+            try {
+                await this.state.page.type(selector, this.credentials.username);
+                console.log(`✅ Username entered using selector: ${selector}`);
+                usernameFound = true;
+                break;
+            } catch (error) {
+                console.log(`❌ Username selector failed: ${selector}`);
+            }
+        }
+
+        if (!usernameFound) {
+            throw new Error('Could not find username input field');
+        }
+
+        // Try different password selectors
+        const passwordSelectors = ['#Password', '#j_password', 'input[name="password"]', 'input[type="password"]'];
+        let passwordFound = false;
+        
+        for (const selector of passwordSelectors) {
+            try {
+                await this.state.page.type(selector, this.credentials.password);
+                console.log(`✅ Password entered using selector: ${selector}`);
+                passwordFound = true;
+                break;
+            } catch (error) {
+                console.log(`❌ Password selector failed: ${selector}`);
+            }
+        }
+
+        if (!passwordFound) {
+            throw new Error('Could not find password input field');
+        }
+
+        // Try different submit button selectors
+        const submitSelectors = ['#login-submit', 'button[type="submit"]', 'input[type="submit"]', '.login-button'];
+        let submitFound = false;
+        
+        for (const selector of submitSelectors) {
+            try {
+                await this.state.page.click(selector);
+                console.log(`✅ Login submitted using selector: ${selector}`);
+                submitFound = true;
+                break;
+            } catch (error) {
+                console.log(`❌ Submit selector failed: ${selector}`);
+            }
+        }
+
+        if (!submitFound) {
+            throw new Error('Could not find login submit button');
+        }
         
         try {
-            await this.state.page.waitForNavigation({ timeout: 5000 });
+            await this.state.page.waitForNavigation({ timeout: 10000 });
             
             const url = this.state.page.url();
+            console.log(`📍 After login URL: ${url}`);
+            
             if (url.includes('login')) {
-                const error = await this.state.page.$eval('.validation-summary-errors', el => el.textContent).catch(() => '');
+                console.log('🔍 Still on login page, checking for errors...');
+                
+                // Take a screenshot for debugging in production
+                if (process.env.HEROKU_MODE === 'true') {
+                    console.log('📸 Taking screenshot for debugging...');
+                    await this.state.page.screenshot({ 
+                        path: '/tmp/login-error.png', 
+                        fullPage: true 
+                    }).catch(() => console.log('❌ Screenshot failed'));
+                }
+                
+                const error = await this.state.page.$eval('.validation-summary-errors, .error-message, .alert-danger', el => el.textContent).catch(() => '');
                 if (error.includes('expired') || error.includes('password')) {
                     console.log('❌ Password expired or incorrect');
                     this.credentials.password = await this.promptForPassword();
                     await this.saveState();
                     return await this.login();
                 }
-                throw new Error('Login failed: ' + error);
+                throw new Error('Login failed: ' + (error || 'Unknown error'));
             }
             
             this.state.isLoggedIn = true;
@@ -186,6 +264,16 @@ class MepiformOrderSystem {
             return true;
         } catch (error) {
             console.error('❌ Login error:', error.message);
+            
+            // Take a screenshot for debugging
+            if (process.env.HEROKU_MODE === 'true') {
+                console.log('📸 Taking screenshot for login debugging...');
+                await this.state.page.screenshot({ 
+                    path: '/tmp/login-debug.png', 
+                    fullPage: true 
+                }).catch(() => console.log('❌ Screenshot failed'));
+            }
+            
             return false;
         }
     }
