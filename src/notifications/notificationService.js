@@ -189,8 +189,8 @@ class NotificationService {
       }
     }
 
-    // Send SMS Notification  
-    if (this.isSmsEnabled) {
+    // Send SMS Notification ONLY for stock alerts and order success
+    if (this.isSmsEnabled && (type === 'stock-alert' || type === 'order-success')) {
       try {
         const smsMessage = this.htmlToText(htmlMessage);
         const smsResult = await this.sendSMS(subject, smsMessage);
