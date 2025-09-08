@@ -227,12 +227,15 @@ class MepiformHerokuServer {
     }
 
     async start() {
-        // Create a single HTTP server and mount dashboard on it
+        // Create a single HTTP server
         this.httpServer = http.createServer(this.app);
+
+        // First set up core routes so they take precedence over static
+        await this.initialize();
+
+        // Then mount the dashboard on the same server (adds static + WS upgrade)
         this.dashboard = new MepiformMonitorDashboard(this.app, this.httpServer, this.port);
         await this.dashboard.initialize();
-
-        await this.initialize();
 
         this.httpServer.listen(this.port, () => {
             console.log(`🌐 MEPIFORM Heroku server running on port ${this.port}`);
