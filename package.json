@@ -10,8 +10,7 @@
     "automation": "node mepiform-order-system.js",
     "scheduler": "node mepiform-scheduler.js",
     "dashboard": "node mepiform-monitor-dashboard.js",
-    "deploy": "./deploy-mepiform-heroku.sh",
-    "postinstall": "playwright install chromium --with-deps"
+    "deploy": "./deploy-mepiform-heroku.sh"
   },
   "keywords": [
     "mepiform",
