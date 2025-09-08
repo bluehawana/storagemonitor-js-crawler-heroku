@@ -51,6 +51,12 @@ class Config {
           port: parseInt(process.env.SMTP_PORT) || 587,
           user: process.env.SMTP_USER || '',
           pass: process.env.SMTP_PASS || ''
+        },
+        sms: {
+          accountSid: process.env.TWILIO_ACCOUNT_SID || '',
+          authToken: process.env.TWILIO_AUTH_TOKEN || '',
+          fromNumber: process.env.TWILIO_FROM_NUMBER || '',
+          toNumber: process.env.NOTIFICATION_PHONE || ''
         }
       },
       compliance: {

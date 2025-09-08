@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const twilio = require('twilio');
 const logger = require('../utils/logger');
 const config = require('../config/config');
 
@@ -6,6 +7,8 @@ class NotificationService {
   constructor() {
     this.emailTransporter = null;
     this.isEmailEnabled = false;
+    this.twilioClient = null;
+    this.isSmsEnabled = false;
     this.initialize();
   }
 
@@ -13,6 +16,7 @@ class NotificationService {
     try {
       const notificationConfig = config.settings.notifications;
       
+      // Initialize Email
       if (notificationConfig.email && notificationConfig.smtp.user && notificationConfig.smtp.pass) {
         this.emailTransporter = nodemailer.createTransporter({
           host: notificationConfig.smtp.host,
@@ -29,11 +33,21 @@ class NotificationService {
         this.isEmailEnabled = true;
         logger.info('Email notifications initialized successfully');
       } else {
-        logger.warn('Email configuration incomplete - notifications disabled');
+        logger.warn('Email configuration incomplete - email notifications disabled');
+      }
+
+      // Initialize SMS
+      if (notificationConfig.sms && notificationConfig.sms.accountSid && notificationConfig.sms.authToken) {
+        this.twilioClient = twilio(notificationConfig.sms.accountSid, notificationConfig.sms.authToken);
+        this.isSmsEnabled = true;
+        logger.info('SMS notifications initialized successfully');
+      } else {
+        logger.warn('SMS configuration incomplete - SMS notifications disabled');
       }
     } catch (error) {
-      logger.error('Failed to initialize email notifications:', error);
+      logger.error('Failed to initialize notifications:', error);
       this.isEmailEnabled = false;
+      this.isSmsEnabled = false;
     }
   }
 
@@ -175,6 +189,19 @@ class NotificationService {
       }
     }
 
+    // Send SMS Notification  
+    if (this.isSmsEnabled) {
+      try {
+        const smsMessage = this.htmlToText(htmlMessage);
+        const smsResult = await this.sendSMS(subject, smsMessage);
+        notifications.push({ type: 'sms', success: true, result: smsResult });
+        logger.info(`SMS notification sent: ${subject}`);
+      } catch (error) {
+        notifications.push({ type: 'sms', success: false, error: error.message });
+        logger.error(`Failed to send SMS notification: ${error.message}`);
+      }
+    }
+
     // Log notification for debugging
     logger.info(`Notification sent - Type: ${type}, Subject: ${subject}`);
 
@@ -198,6 +225,45 @@ class NotificationService {
     return result;
   }
 
+  async sendSMS(subject, textMessage) {
+    if (!this.isSmsEnabled) {
+      throw new Error('SMS notifications not configured');
+    }
+
+    const notificationConfig = config.settings.notifications;
+    const smsBody = `${subject}\n\n${textMessage}`;
+    
+    // Truncate SMS to 1600 characters (Twilio limit)
+    const truncatedBody = smsBody.length > 1600 ? smsBody.substring(0, 1597) + '...' : smsBody;
+
+    const result = await this.twilioClient.messages.create({
+      body: truncatedBody,
+      from: notificationConfig.sms.fromNumber,
+      to: notificationConfig.sms.toNumber
+    });
+
+    return result;
+  }
+
+  htmlToText(html) {
+    // Simple HTML to text conversion for SMS
+    return html
+      .replace(/<h[1-6]>/gi, '\n')
+      .replace(/<\/h[1-6]>/gi, '\n')
+      .replace(/<p>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<li>/gi, '• ')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\n\s*\n/g, '\n\n')
+      .trim();
+  }
+
   async testNotification() {
     const testMessage = `
       <h2>Test Notification</h2>
@@ -216,7 +282,7 @@ class NotificationService {
   }
 
   isEnabled() {
-    return this.isEmailEnabled;
+    return this.isEmailEnabled || this.isSmsEnabled;
   }
 
   getStatus() {
@@ -224,6 +290,10 @@ class NotificationService {
       email: {
         enabled: this.isEmailEnabled,
         configured: !!config.settings.notifications.smtp.user
+      },
+      sms: {
+        enabled: this.isSmsEnabled,
+        configured: !!config.settings.notifications.sms?.accountSid
       }
     };
   }
