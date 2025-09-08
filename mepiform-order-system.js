@@ -123,7 +123,7 @@ class MepiformOrderSystem {
         console.log('🌐 Launching browser...');
         const isHeroku = process.env.HEROKU_MODE === 'true' || process.env.NODE_ENV === 'production';
         
-        this.state.browser = await chromium.launch({
+        const launchOptions = {
             headless: isHeroku ? true : (process.env.HEADLESS_MODE === 'true'),
             args: isHeroku ? [
                 '--disable-blink-features=AutomationControlled',
