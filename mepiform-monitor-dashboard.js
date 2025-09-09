@@ -294,6 +294,49 @@ class MepiformMonitorDashboard extends EventEmitter {
         .alert-warning { background: #fff3cd; color: #856404; }
         .alert-error { background: #f8d7da; color: #721c24; }
         
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: 20px;
+        }
+        
+        .control-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .start-button {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .start-button:hover {
+            background: #229954;
+        }
+        
+        .start-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .stop-button {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .stop-button:hover {
+            background: #c0392b;
+        }
+        
+        .stop-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -334,8 +377,12 @@ class MepiformMonitorDashboard extends EventEmitter {
                 <h1>MEPIFORM Order Monitor</h1>
                 <p>Automatic Order Management System</p>
             </div>
-            <div>
+            <div style="display: flex; align-items: center;">
                 <span class="status-badge" id="system-status">Connecting...</span>
+                <div class="control-buttons">
+                    <button class="control-button start-button" id="start-button" onclick="startAutomation()">Start Automation</button>
+                    <button class="control-button stop-button" id="stop-button" onclick="stopAutomation()">Stop Automation</button>
+                </div>
             </div>
         </div>
 
@@ -428,6 +475,9 @@ class MepiformMonitorDashboard extends EventEmitter {
 
             // Update orders
             updateOrdersList(dashboardData.todaysOrders);
+            
+            // Update button states
+            updateButtonStates();
         }
 
         function updateProductStatus(productId, status) {
@@ -484,6 +534,83 @@ class MepiformMonitorDashboard extends EventEmitter {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ alertId })
             });
+        }
+
+        function startAutomation() {
+            const startButton = document.getElementById('start-button');
+            const stopButton = document.getElementById('stop-button');
+            
+            startButton.disabled = true;
+            startButton.textContent = 'Starting...';
+            
+            fetch('/start-automation', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started' || data.status === 'already_running') {
+                    startButton.textContent = 'Start Automation';
+                    updateButtonStates();
+                } else {
+                    alert('Failed to start automation: ' + (data.message || 'Unknown error'));
+                    startButton.disabled = false;
+                    startButton.textContent = 'Start Automation';
+                }
+            })
+            .catch(error => {
+                alert('Error starting automation: ' + error.message);
+                startButton.disabled = false;
+                startButton.textContent = 'Start Automation';
+            });
+        }
+
+        function stopAutomation() {
+            const startButton = document.getElementById('start-button');
+            const stopButton = document.getElementById('stop-button');
+            
+            stopButton.disabled = true;
+            stopButton.textContent = 'Stopping...';
+            
+            fetch('/stop-automation', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'stopped' || data.status === 'not_running') {
+                    stopButton.textContent = 'Stop Automation';
+                    updateButtonStates();
+                } else {
+                    alert('Failed to stop automation: ' + (data.message || 'Unknown error'));
+                    stopButton.disabled = false;
+                    stopButton.textContent = 'Stop Automation';
+                }
+            })
+            .catch(error => {
+                alert('Error stopping automation: ' + error.message);
+                stopButton.disabled = false;
+                stopButton.textContent = 'Stop Automation';
+            });
+        }
+
+        function updateButtonStates() {
+            if (!dashboardData) return;
+            
+            const startButton = document.getElementById('start-button');
+            const stopButton = document.getElementById('stop-button');
+            
+            if (dashboardData.systemStatus === 'active') {
+                startButton.disabled = true;
+                stopButton.disabled = false;
+            } else if (dashboardData.systemStatus === 'idle') {
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            } else {
+                // Error state - disable both
+                startButton.disabled = true;
+                stopButton.disabled = true;
+            }
         }
 
         // Auto-refresh every 30 seconds
