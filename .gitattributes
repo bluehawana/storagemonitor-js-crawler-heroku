@@ -1,0 +1,17 @@
+# Language detection overrides for GitHub
+*.js linguist-language=JavaScript
+*.json linguist-language=JSON
+*.md linguist-documentation=true
+*.txt linguist-documentation=true
+
+# Exclude documentation files from language statistics
+*.md linguist-detectable=false
+README* linguist-detectable=false
+docs/* linguist-detectable=false
+
+# Mark main language files for detection
+*.js linguist-detectable=true
+
+# Vendor and generated files
+node_modules/* linguist-vendored=true
+package-lock.json linguist-generated=true

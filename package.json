@@ -13,11 +13,18 @@
     "deploy": "./deploy-mepiform-heroku.sh"
   },
   "keywords": [
+    "javascript",
+    "nodejs",
     "mepiform",
     "automation",
     "oriola4care",
     "playwright",
-    "scheduling"
+    "puppeteer",
+    "web-automation",
+    "scheduling",
+    "express",
+    "dashboard",
+    "monitoring"
   ],
   "author": "MEPIFORM Automation System",
   "license": "MIT",
@@ -41,10 +48,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/oriola4care-monitor.git"
+    "url": "https://github.com/bluehawana/storagemonitor-python-crawler-heroku.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/oriola4care-monitor/issues"
+    "url": "https://github.com/bluehawana/storagemonitor-python-crawler-heroku/issues"
   },
-  "homepage": "https://github.com/yourusername/oriola4care-monitor#readme"
+  "homepage": "https://github.com/bluehawana/storagemonitor-python-crawler-heroku#readme"
 }
